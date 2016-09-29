@@ -1,6 +1,6 @@
 ---
 title: "Lista 2 ME613"
-output: pdf_document
+output: html_document
 ---
 
 #Exercício 5
@@ -70,17 +70,29 @@ t_1 > t
 
 (p_valor_beta_0_1=c(pt(t_0,24),pt(t_1,24)))
 (model <- lm((censo$`Renda Média`)~ajuste))
+pred <- predict(model)
 ```
 
 ```{r plot_modelo}
 plot(ajuste,censo$`Renda Média`)
 abline(model,col="red",lty = 3)
-par(mfrow=c(2,2))
-plot(model)
+
 par(mfrow=c(1,1))
 plot(censo$`Renda Média`,pred)
 abline(model,col="red",lty = 3)
 
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(model)
+```
+
+
+```{r}
+par(mfrow=c(1,1))
+plot(censo$`Renda Média`,pred)
+abline(model,col="red",lty = 3)
 ```
 
 #Exercício 6
