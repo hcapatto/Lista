@@ -1,0 +1,208 @@
+---
+title: "Lista 2 ME613"
+output: pdf_document
+---
+
+#Exercício 5
+
+```{r setup, include=FALSE}
+censo <- read.table("http://www.ime.unicamp.br/~cnaber/censo.txt",header=T)
+
+names(censo) = c("UF","Anos de Escolaridade","Renda Média")
+
+media=data.frame(mean(censo$`Anos de Escolaridade`),mean(censo$`Renda Média`))
+names(media)=c("Anos de Escolaridade","Renda Média")
+se=data.frame(sd(censo$`Anos de Escolaridade`),sd(censo$`Renda Média`))
+names(se)=c("Anos de Escolaridade","Renda Média")
+quantis=data.frame(quantile(censo$`Anos de Escolaridade`),quantile(censo$`Renda Média`))
+names(quantis)=c("Anos de Escolaridade","Renda Média")
+```
+
+## Modelo
+
+## Estatísticas descritivas
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+ajuste <- censo$`Anos de Escolaridade` - mean(censo$`Anos de Escolaridade`)
+plot(ajuste,censo$`Renda Média`)
+
+a=sum(censo$`Renda Média`)
+b=sum((ajuste-mean(ajuste))^2)
+
+beta_0 = mean(a*((1/nrow(censo))-mean(ajuste)*((ajuste-mean(ajuste))/b)))
+
+beta_1= sum((censo$`Renda Média`)*(ajuste-mean(ajuste))/b)
+
+w_0 = (1/nrow(censo))+((mean(ajuste)^2)*b)
+w_1 = 1/b
+
+sigma2 =(sum((ajuste-beta_0-beta_1*censo$`Anos de Escolaridade`)^2))/(nrow(censo)-2)
+
+t=qt(0.975,24)
+
+ic_beta_0 = beta_0+c(-1,1)*t*sqrt(sigma2*w_0)
+ic_beta_1 = beta_1+c(-1,1)*t*sqrt(sigma2*w_1)
+
+t_0=beta_0/sqrt(sigma2*w_0) 
+t_1=beta_1/sqrt(sigma2*w_1) 
+
+t_0 > t
+t_1 > t
+
+(p_valor_beta_0_1=c(pt(t_0,24),pt(t_1,24)))
+(model <- lm((censo$`Renda Média`)~ajuste))
+```
+
+```{r plot_modelo}
+plot(ajuste,censo$`Renda Média`)
+abline(model,col="red",lty = 3)
+par(mfrow=c(2,2))
+plot(model)
+par(mfrow=c(1,1))
+plot(censo$`Renda Média`,pred)
+abline(model,col="red",lty = 3)
+
+```
+
+#Exercício 6
+
+```{r leitura_dados_ex6}
+imoveis = read.table("http://www.ime.unicamp.br/~cnaber/imoveis.txt")
+names(imoveis)=c("Imposto","Área_terreno","Área_construída","Idade","Preco_venda")
+
+
+```
+
+
+```{r estat_desc_ex6}
+
+dif <- function(x){
+  diff(range(x))
+}
+
+medias = as.numeric(lapply(imoveis,mean))
+se = as.numeric(lapply(imoveis,sd))
+quantis = lapply(imoveis,quantile)
+ampli = lapply(imoveis,dif)
+
+(estats_desc=data.frame(medias,se,quantis,ampli))
+x = matrix(data=c(rep(1,27),imoveis$Imposto,imoveis$Área_terreno,imoveis$Área_construída,imoveis$Idade),nrow=27,ncol=5)
+```
+
+## Na mão
+
+```{r}
+library(MASS)
+x = matrix(data=c(rep(1,27),imoveis$Imposto,imoveis$Área_terreno,imoveis$Área_construída,imoveis$Idade),nrow=27,ncol=5)
+
+psi = ginv(t(x)%*%x)
+
+beta=ginv(t(x)%*%x)%*%t(x)%*%imoveis$Preco_venda
+identidade=diag((nrow(imoveis)))
+sigma2 = (1/(nrow(imoveis)-4))*(t(imoveis$Preco_venda)%*%(identidade-x%*%ginv(t(x)%*%x)%*%t(x))%*%imoveis$Preco_venda)
+
+t = qt(0.975,(nrow(imoveis)-4))
+
+ic = function(beta,x){
+  psi = ginv(t(x)%*%x)
+  ics= numeric(2*nrow(psi))
+  j=1
+  for(i in seq(1,10,2)){
+  ics[i]=beta[j]-1*t*sqrt(sigma2*psi[j,j])
+  ics[i+1]=beta[j]+1*t*sqrt(sigma2*psi[j,j])
+  j=j+1
+  }
+  return(ics)
+}
+
+teste = function(beta){
+        ts= numeric(nrow(psi))
+        
+        for(i in 1:nrow(psi)){
+        
+          
+           ts[i]=beta/sqrt(as.numeric(sigma2*(psi[i,i])))
+        
+         }
+        return(ts)
+}
+
+tes = teste(beta)
+
+tes < t
+
+```
+
+
+## Código em R
+
+```{r}
+(modelo <- lm(Preco_venda~Imposto+Área_terreno+Área_construída+Idade,data=imoveis))
+pred = predict(modelo)
+plot(imoveis$Preco_venda,pred)
+abline(modelo,col="red")
+```
+
+
+```{r}
+
+
+
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
